@@ -14,7 +14,7 @@ MatrixXd strictlyUpperTriangularView(MatrixXd& M){
     return U;
 }
 
-VectorXd jMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter){
+VectorXd jMatIter(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter){
     MatrixXd L = strictlyLowerTriangularView(A) * (-1);
     MatrixXd U = strictlyUpperTriangularView(A) * (-1);
     MatrixXd D = A.diagonal().asDiagonal();
@@ -33,7 +33,27 @@ VectorXd jMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter){
     return xk1;
 }
 
-VectorXd gsMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter){
+VectorXd jMatThresh(MatrixXd& A, VectorXd& b, VectorXd& x0, float threshold){
+    MatrixXd L = strictlyLowerTriangularView(A) * (-1);
+    MatrixXd U = strictlyUpperTriangularView(A) * (-1);
+    MatrixXd D = A.diagonal().asDiagonal();
+    
+    MatrixXd invD = D.inverse();
+    MatrixXd c = invD * b;
+    MatrixXd R = invD * (L + U);
+    
+    VectorXd xk1, xk = x0;
+    
+    while((xk1 - xk).norm() > threshold){
+        xk1 = (R * xk) + c;
+        xk = xk1;
+    }
+
+    return xk1;
+}
+
+
+VectorXd gsMatIter(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter){
     MatrixXd L = strictlyLowerTriangularView(A) * (-1);
     MatrixXd U = strictlyUpperTriangularView(A) * (-1);
     MatrixXd D = A.diagonal().asDiagonal();
@@ -52,8 +72,8 @@ VectorXd gsMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter){
     return xk1;
 }
 
-float sumatoriaDeJ(MatrixXd& M, int i, VectorXd& xk) {
-    float sum = 0;
+double sumatoriaDeJIter(MatrixXd& M, int i, VectorXd& xk) {
+    double sum = 0;
     int n = M.cols();
     for(int j = 0; j < n; j++) {
         if(j != i)
@@ -62,16 +82,16 @@ float sumatoriaDeJ(MatrixXd& M, int i, VectorXd& xk) {
     return sum;
 }
 
-VectorXd jSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter) {
+VectorXd jSumIter(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter) {
     int n = A.rows(); 
     VectorXd xk = x0;
     VectorXd xk1(xk.size());
     for(int k = 0; k < nIter; k++) {
         for(int i = 0; i < n; i++) {
-            float sum = sumatoriaDeJ(A, i, xk);
-            float b_i = b.coeff(i);
-            float a_ii = A.coeff(i, i);
-            float xk1_i = (b_i - sum) / a_ii;
+            double sum = sumatoriaDeJ(A, i, xk);
+            double b_i = b.coeff(i);
+            double a_ii = A.coeff(i, i);
+            double xk1_i = (b_i - sum) / a_ii;
             xk1(i) = xk1_i;
         }
         xk = xk1;
@@ -79,8 +99,8 @@ VectorXd jSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter) {
     return xk1;
 }
 
-float sumatoriaDeGS1(MatrixXd& M, int i, VectorXd& xk) {
-    float sum = 0;
+double sumatoriaDeGS1(MatrixXd& M, int i, VectorXd& xk) {
+    double sum = 0;
     int n = M.cols();
     for (int j = i + 1; j < n; j++) {
         sum += M.coeff(i, j) * xk.coeff(j);
@@ -88,30 +108,35 @@ float sumatoriaDeGS1(MatrixXd& M, int i, VectorXd& xk) {
     return sum;
 }
 
-float sumatoriaDeGS2(MatrixXd& M, int i, VectorXd& xk1) {
-    float sum = 0;
+double sumatoriaDeGS2(MatrixXd& M, int i, VectorXd& xk1) {
+    double sum = 0;
     for (int j = 0; j < i; j++) {
         sum += M.coeff(i, j) * xk1.coeff(j);
     }
     return sum;
 }
 
-VectorXd gsSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter) {
+VectorXd gsSumIter(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter) {
     int n = A.rows();
     VectorXd xk = x0;
     VectorXd xk1(size(xk));
     for (int k = 0; k < nIter; k++) {
         for (int i = 0; i < n; i++) {
-            float sum1 = sumatoriaDeGS1(A, i, xk);
-            float sum2 = sumatoriaDeGS2(A, i, xk1);
-            float b_i = b.coeff(i);
-            float a_ii = A.coeff(i, i);
-            float xk1_i = (b_i - sum1 - sum2) / a_ii;
+            double sum1 = sumatoriaDeGS1(A, i, xk);
+            double sum2 = sumatoriaDeGS2(A, i, xk1);
+            double b_i = b.coeff(i);
+            double a_ii = A.coeff(i, i);
+            double xk1_i = (b_i - sum1 - sum2) / a_ii;
             xk1(i) = xk1_i;
         }
         xk = xk1;
     }
     return xk1;
+}
+
+VectorXd resolverLU(MatrixXd& A, VectorXd& b){
+    VectorXd x = A.lu().solve(b);
+    return x; 
 }
 
 

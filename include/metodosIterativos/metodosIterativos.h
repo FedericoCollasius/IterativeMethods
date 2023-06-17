@@ -11,9 +11,9 @@ using namespace Eigen;
 // Funciones Auxiliares: 
 MatrixXd strictlyLowerTriangularView(MatrixXd& M);
 MatrixXd strictlyUpperTriangularView(MatrixXd& M);
-float sumatoriaDeJ(MatrixXd& M, int i, VectorXd& xk);
-float sumatoriaDeGS1(MatrixXd& M, int i, VectorXd& xk);
-float sumatoriaDeGS2(MatrixXd& M, int i, VectorXd& xk1);
+double sumatoriaDeJ(MatrixXd& M, int i, VectorXd& xk);
+double sumatoriaDeGS1(MatrixXd& M, int i, VectorXd& xk);
+double sumatoriaDeGS2(MatrixXd& M, int i, VectorXd& xk1);
 
 
 // Metodos Iterativos:
