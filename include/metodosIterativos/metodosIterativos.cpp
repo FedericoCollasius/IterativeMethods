@@ -33,26 +33,6 @@ VectorXd jMatIter(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter){
     return xk1;
 }
 
-VectorXd jMatThresh(MatrixXd& A, VectorXd& b, VectorXd& x0, float threshold){
-    MatrixXd L = strictlyLowerTriangularView(A) * (-1);
-    MatrixXd U = strictlyUpperTriangularView(A) * (-1);
-    MatrixXd D = A.diagonal().asDiagonal();
-    
-    MatrixXd invD = D.inverse();
-    MatrixXd c = invD * b;
-    MatrixXd R = invD * (L + U);
-    
-    VectorXd xk1, xk = x0;
-    
-    while((xk1 - xk).norm() > threshold){
-        xk1 = (R * xk) + c;
-        xk = xk1;
-    }
-
-    return xk1;
-}
-
-
 VectorXd gsMatIter(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter){
     MatrixXd L = strictlyLowerTriangularView(A) * (-1);
     MatrixXd U = strictlyUpperTriangularView(A) * (-1);
