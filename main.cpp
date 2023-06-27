@@ -21,9 +21,10 @@ int main() {
     int nIter = 50; 
 
     VectorXd expected = resolverLU(A, b);
-    VectorXd jacobi = jMat(A, b, x0, nIter);
+    //VectorXd jacobi = jMat(A, b, x0, nIter);
     
-    cout << "Difference between expected and Jacobi method: " << (expected - jacobi).norm() << endl;
+//    cout << "Difference between expected and Jacobi method: " << (expected - jacobi).norm() << endl;
+
     
     return 0; 
 }

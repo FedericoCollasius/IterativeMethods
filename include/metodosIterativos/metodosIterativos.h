@@ -14,7 +14,7 @@ MatrixXd strictlyUpperTriangularView(MatrixXd& M);
 double sumatoriaDeJ(MatrixXd& M, int i, VectorXd& xk);
 double sumatoriaDeGS1(MatrixXd& M, int i, VectorXd& xk);
 double sumatoriaDeGS2(MatrixXd& M, int i, VectorXd& xk1);
-VectorXd resolverLU(MatrixXd& A, VectorXd& b) ;
+VectorXd resolverLU(MatrixXd& A, VectorXd& b);
 
 // Metodos Iterativos:
 VectorXd jMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter);
