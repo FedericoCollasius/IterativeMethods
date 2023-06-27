@@ -1,5 +1,5 @@
 #include <iostream>
-#include <Eigen>
+#include <fstream>
 #include "include/metodosIterativos/metodosIterativos.h"
 
 using namespace std;
@@ -19,12 +19,12 @@ int main() {
     x0 << 0, 0, 0;
     
     int nIter = 50; 
+    double threshold = 0.00001;
 
     VectorXd expected = resolverLU(A, b);
-    //VectorXd jacobi = jMat(A, b, x0, nIter);
+    VectorXd jacobi_mat = gsMat(A, b, x0, nIter, threshold);
     
-//    cout << "Difference between expected and Jacobi method: " << (expected - jacobi).norm() << endl;
+    cout << "Diferencia entre Metodo Directo y Metodo Iterativo: " << (expected - jacobi_mat).norm() << endl;
 
-    
     return 0; 
 }
