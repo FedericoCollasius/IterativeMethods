@@ -1,24 +1,22 @@
 #include "metodosIterativos.h"
-//10^-8
-float treshold = 0.00000001; 
-
-MatrixXd strictlyLowerTriangularView(MatrixXd& M){
+ 
+MatrixXd estrictamenteTriangularInferior(MatrixXd& M){
     MatrixXd  L = M.triangularView<Lower>();
     for(int i = 0; i < M.rows(); i++)
         L(i, i) = 0;
     return L;
 }
 
-MatrixXd strictlyUpperTriangularView(MatrixXd& M){
+MatrixXd estrictamenteTriangularSuperior(MatrixXd& M){
     MatrixXd U = M.triangularView<Upper>();
     for(int i = 0; i < M.rows(); i++)
         U(i, i) = 0;
     return U;
 }
 
-VectorXd jMatIter(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter){
-    MatrixXd L = strictlyLowerTriangularView(A) * (-1);
-    MatrixXd U = strictlyUpperTriangularView(A) * (-1);
+VectorXd jMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold){
+    MatrixXd L = estrictamenteTriangularInferior(A) * (-1);
+    MatrixXd U = estrictamenteTriangularSuperior(A) * (-1);
     MatrixXd D = A.diagonal().asDiagonal();
     
     MatrixXd invD = D.inverse();
@@ -28,9 +26,8 @@ VectorXd jMatIter(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter){
     VectorXd xk1, xk = x0;
 
     for(int k = 0; k < nIter; k++){
-        //add treshold check
         xk1 = (R * xk) + c;
-        if ((xk1 - xk).norm() < treshold)
+        if ((xk1 - xk).norm() < threshold)
             break;
         xk = xk1;
     }
@@ -38,9 +35,9 @@ VectorXd jMatIter(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter){
     return xk1;
 }
 
-VectorXd gsMatIter(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter){
-    MatrixXd L = strictlyLowerTriangularView(A) * (-1);
-    MatrixXd U = strictlyUpperTriangularView(A) * (-1);
+VectorXd gsMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold){
+    MatrixXd L = estrictamenteTriangularInferior(A) * (-1);
+    MatrixXd U = estrictamenteTriangularSuperior(A) * (-1);
     MatrixXd D = A.diagonal().asDiagonal();
     
     MatrixXd DLinv = (D - L).inverse();
@@ -51,13 +48,15 @@ VectorXd gsMatIter(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter){
 
     for(int k = 0; k < nIter; k++){
         xk1 = (R * xk) + c;
+        if ((xk1 - xk).norm() < threshold)
+            break;
         xk = xk1;
     }
 
     return xk1;
 }
 
-double sumatoriaDeJIter(MatrixXd& M, int i, VectorXd& xk) {
+double sumatoriaDeJ(MatrixXd& M, int i, VectorXd& xk) {
     double sum = 0;
     int n = M.cols();
     for(int j = 0; j < n; j++) {
@@ -67,20 +66,19 @@ double sumatoriaDeJIter(MatrixXd& M, int i, VectorXd& xk) {
     return sum;
 }
 
-VectorXd jSumIter(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter) {
+VectorXd jSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold) {
     int n = A.rows(); 
     VectorXd xk = x0;
     VectorXd xk1(xk.size());
     for(int k = 0; k < nIter; k++) {
         for(int i = 0; i < n; i++) {
-            double sum = sumatoriaDeJIter(A, i, xk);
+            double sum = sumatoriaDeJ(A, i, xk);
             double b_i = b.coeff(i);
             double a_ii = A.coeff(i, i);
             double xk1_i = (b_i - sum) / a_ii;
             xk1(i) = xk1_i;
         }
-        //add treshold check
-        if ((xk1 - xk).norm() < treshold)
+        if ((xk1 - xk).norm() < threshold)
             break;
         xk = xk1;
     }
@@ -104,7 +102,7 @@ double sumatoriaDeGS2(MatrixXd& M, int i, VectorXd& xk1) {
     return sum;
 }
 
-VectorXd gsSumIter(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter) {
+VectorXd gsSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold) {
     int n = A.rows();
     VectorXd xk = x0;
     VectorXd xk1(size(xk));
@@ -117,7 +115,7 @@ VectorXd gsSumIter(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter) {
             double xk1_i = (b_i - sum1 - sum2) / a_ii;
             xk1(i) = xk1_i;
         }
-        if ((xk1 - xk).norm() < treshold)
+        if ((xk1 - xk).norm() < threshold)
             break;
         xk = xk1;
     }
