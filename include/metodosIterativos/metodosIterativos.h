@@ -1,4 +1,4 @@
-#include <Eigen/Dense>
+#include <Eigen>
 #include <iostream>
 #include <fstream>
 #include <utility>

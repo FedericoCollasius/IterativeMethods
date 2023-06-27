@@ -19,10 +19,9 @@ int main() {
 
     int nIter = 50; 
 
-    VectorXd res = jSum(matrix, b, x0, nIter);
-
-    cout << "Aproximacion: " << endl;
-    cout << res << endl;
+    VectorXd jacobiIter = jMatIter(matrix, b, x0, nIter);
+    VectorXd gsIter = gsMatIter(matrix, b, x0, nIter);
+    VectorXd expected = resolverLU(matrix, b);
 
     return 0; 
 }

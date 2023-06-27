@@ -1,4 +1,6 @@
-#include "./metodosIterativos.h"
+#include "metodosIterativos.h"
+//10^-8
+float treshold = 0.00000001; 
 
 MatrixXd strictlyLowerTriangularView(MatrixXd& M){
     MatrixXd  L = M.triangularView<Lower>();
@@ -26,7 +28,10 @@ VectorXd jMatIter(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter){
     VectorXd xk1, xk = x0;
 
     for(int k = 0; k < nIter; k++){
+        //add treshold check
         xk1 = (R * xk) + c;
+        if ((xk1 - xk).norm() < treshold)
+            break;
         xk = xk1;
     }
 
@@ -68,12 +73,15 @@ VectorXd jSumIter(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter) {
     VectorXd xk1(xk.size());
     for(int k = 0; k < nIter; k++) {
         for(int i = 0; i < n; i++) {
-            double sum = sumatoriaDeJ(A, i, xk);
+            double sum = sumatoriaDeJIter(A, i, xk);
             double b_i = b.coeff(i);
             double a_ii = A.coeff(i, i);
             double xk1_i = (b_i - sum) / a_ii;
             xk1(i) = xk1_i;
         }
+        //add treshold check
+        if ((xk1 - xk).norm() < treshold)
+            break;
         xk = xk1;
     }
     return xk1;
@@ -109,6 +117,8 @@ VectorXd gsSumIter(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter) {
             double xk1_i = (b_i - sum1 - sum2) / a_ii;
             xk1(i) = xk1_i;
         }
+        if ((xk1 - xk).norm() < treshold)
+            break;
         xk = xk1;
     }
     return xk1;
