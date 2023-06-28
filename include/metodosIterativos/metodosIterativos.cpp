@@ -24,11 +24,18 @@ VectorXd jMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshol
     MatrixXd R = invD * (L + U);
     
     VectorXd xk1, xk = x0;
+    float normaPrevia = xk.norm();
 
     for(int k = 0; k < nIter; k++){
         xk1 = (R * xk) + c;
+        
         if ((xk1 - xk).norm() < threshold)
             break;
+        float normaActual = xk1.norm();
+        if (normaActual > normaPrevia)
+            cout << "ALERTA: EL METODO PARECE ESTAR DIVIRGIENDO." << endl;
+        
+        normaPrevia = normaActual;
         xk = xk1;
     }
 
@@ -45,11 +52,18 @@ VectorXd gsMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double thresho
     MatrixXd R = DLinv * U; 
     
     VectorXd xk1, xk = x0;
+    float normaPrevia = xk.norm();
 
     for(int k = 0; k < nIter; k++){
         xk1 = (R * xk) + c;
+        
         if ((xk1 - xk).norm() < threshold)
             break;
+        float normaActual = xk1.norm();
+        if (normaActual > normaPrevia)
+            cout << "ALERTA: EL METODO PARECE ESTAR DIVIRGIENDO." << endl;
+        
+        normaPrevia = normaActual;
         xk = xk1;
     }
 
@@ -70,6 +84,8 @@ VectorXd jSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshol
     int n = A.rows(); 
     VectorXd xk = x0;
     VectorXd xk1(xk.size());
+    float normaPrevia = xk.norm();
+
     for(int k = 0; k < nIter; k++) {
         for(int i = 0; i < n; i++) {
             double sum = sumatoriaDeJ(A, i, xk);
@@ -78,8 +94,14 @@ VectorXd jSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshol
             double xk1_i = (b_i - sum) / a_ii;
             xk1(i) = xk1_i;
         }
+
         if ((xk1 - xk).norm() < threshold)
             break;
+        float normaActual = xk1.norm();
+        if (normaActual > normaPrevia)
+            cout << "ALERTA: EL METODO PARECE ESTAR DIVIRGIENDO." << endl;
+
+        normaPrevia = normaActual;
         xk = xk1;
     }
     return xk1;
@@ -106,6 +128,8 @@ VectorXd gsSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double thresho
     int n = A.rows();
     VectorXd xk = x0;
     VectorXd xk1(size(xk));
+    float normaPrevia = xk.norm();
+
     for (int k = 0; k < nIter; k++) {
         for (int i = 0; i < n; i++) {
             double sum1 = sumatoriaDeGS1(A, i, xk);
@@ -115,8 +139,14 @@ VectorXd gsSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double thresho
             double xk1_i = (b_i - sum1 - sum2) / a_ii;
             xk1(i) = xk1_i;
         }
+
         if ((xk1 - xk).norm() < threshold)
             break;
+        float normaActual = xk1.norm();
+        if (normaActual > normaPrevia)
+            cout << "ALERTA: EL METODO PARECE ESTAR DIVIRGIENDO." << endl;
+
+        normaPrevia = normaActual;
         xk = xk1;
     }
     return xk1;
