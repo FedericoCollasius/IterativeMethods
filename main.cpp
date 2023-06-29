@@ -16,13 +16,14 @@ int main() {
     VectorXd x0(3); 
     x0 << 0, 0, 0;
     
-    int nIter = 50; 
-    double threshold = 0.00001;
+    int nIter = 500; 
+    double threshold = 0.00000000001;
+    int checkeoNorma = 100;
 
     VectorXd expected = resolverLU(A, b);
-    VectorXd jacobi_mat = jSum(A, b, x0, nIter, threshold);
+    VectorXd aprox = jSum(A, b, x0, nIter, threshold, checkeoNorma);
     
-    cout << "Diferencia entre Metodo Directo y Metodo Iterativo: " << (expected - jacobi_mat).norm() << endl;
+    cout << "Diferencia entre Metodo Directo y Metodo Iterativo: " << (expected - aprox).norm() << endl;
 
     return 0; 
 }
