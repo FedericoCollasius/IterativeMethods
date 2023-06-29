@@ -57,6 +57,7 @@ int main() {
     int nIter = 500;
     double threshold = 0.00000000001;
     int checkeoNorma = 100;
+    int divThreshold = 10;
 
     // Generar matrices y vectores aleatorios y realizar las pruebas
     for (int i = 0; i < numTests; i++) {
@@ -70,21 +71,35 @@ int main() {
         double luTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
 
         start = chrono::high_resolution_clock::now();
-        VectorXd jsumResult = jSum(A, b, x0, nIter, threshold, checkeoNorma);
+        VectorXd jSumResult = jSum(A, b, x0, nIter, threshold, checkeoNorma, divThreshold);
         end = chrono::high_resolution_clock::now();
-        double jsumTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
-        double jsumError = (expected - jsumResult).norm();
+        double jSumTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
+        double jSumError = (expected - jSumResult).norm();
 
         start = chrono::high_resolution_clock::now();
-        VectorXd gsSumResult = gsSum(A, b, x0, nIter, threshold, checkeoNorma);
+        VectorXd gsSumResult = gsSum(A, b, x0, nIter, threshold, checkeoNorma, divThreshold);
         end = chrono::high_resolution_clock::now();
         double gsSumTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
         double gsSumError = (expected - gsSumResult).norm();
 
+        start = chrono::high_resolution_clock::now();
+        VectorXd jMatResult = jMat(A, b, x0, nIter, threshold, checkeoNorma, divThreshold);
+        end = chrono::high_resolution_clock::now();
+        double jMatTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
+        double jMatError = (expected - jMatResult).norm();
+
+        start = chrono::high_resolution_clock::now();
+        VectorXd gsMatResult = gsSum(A, b, x0, nIter, threshold, checkeoNorma, divThreshold);
+        end = chrono::high_resolution_clock::now();
+        double gsMatTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
+        double gsMatError = (expected - gsMatResult).norm();
+
         // Escribir los resultados en archivos
         writeResultToFile("results.csv", "LU", luTime, 0.0);
-        writeResultToFile("results.csv", "jSum", jsumTime, jsumError);
+        writeResultToFile("results.csv", "jSum", jSumTime, jSumError);
         writeResultToFile("results.csv", "gsSum", gsSumTime, gsSumError);
+        writeResultToFile("results.csv", "jMat", jMatTime, jMatError);
+        writeResultToFile("results.csv", "gsMat", gsMatTime, gsMatError);
     }
 
     return 0;
