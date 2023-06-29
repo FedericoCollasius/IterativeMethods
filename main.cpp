@@ -5,11 +5,6 @@
 using namespace std;
 using namespace Eigen;
 
-//Setear semilla para replicar resultados
-void setSeed() {
-    srand(0);
-}
-
 // Función para generar una matriz aleatoria
 MatrixXd generateRandomMatrix(int size) {
     MatrixXd matrix(size, size);
@@ -17,10 +12,30 @@ MatrixXd generateRandomMatrix(int size) {
     return matrix;
 }
 
+// Funcion para generar matriz diagonal dominante con valores chicos para 
+// simplificar el cálculo 
+MatrixXd generateDominantMatrix(int size) {
+    MatrixXd matrix(size, size);
+    // for each cell except diagonal, add a random number between 0 and 10
+    for(int i=0; i<size; i++){
+        for(int j=0; j<size; j++){
+            if(i!=j){
+                matrix(i,j) = rand() % 10;
+            }
+            else{
+                matrix(i,j) = 10*size +1;
+            }
+        }
+    }
+    return matrix;
+}
+
+
 // Función para generar un vector aleatorio
 VectorXd generateRandomVector(int size) {
     VectorXd vector(size);
-    vector.setRandom();
+    int random_int = rand() % 10;
+    vector = VectorXd::Constant(size, random_int);
     return vector;
 }
 
