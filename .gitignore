@@ -1,4 +1,8 @@
 #ignore executable main
-main: main.o
-  $(CC) $(CFLAGS) -o main main.o
+.main
 
+#ignore txt files
+*.txt
+
+#ignore csv files
+*.csv
