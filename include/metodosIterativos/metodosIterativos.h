@@ -17,10 +17,10 @@ double sumatoriaDeGS2(MatrixXd& M, int i, VectorXd& xk1);
 VectorXd resolverLU(MatrixXd& A, VectorXd& b);
 
 // Metodos Iterativos:
-VectorXd jMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold);
-VectorXd jSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold);
-VectorXd gsMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold);
-VectorXd gsSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold);
+VectorXd jMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold, double delta);
+VectorXd jSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold, double);
+VectorXd gsMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold, double delta);
+VectorXd gsSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold, double delta);
 
 
 

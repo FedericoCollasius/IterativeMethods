@@ -14,7 +14,7 @@ MatrixXd estrictamenteTriangularSuperior(MatrixXd& M){
     return U;
 }
 
-VectorXd jMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold){
+VectorXd jMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold, double delta){
     MatrixXd L = estrictamenteTriangularInferior(A) * (-1);
     MatrixXd U = estrictamenteTriangularSuperior(A) * (-1);
     MatrixXd D = A.diagonal().asDiagonal();
@@ -34,7 +34,7 @@ VectorXd jMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshol
             break;
         if (k % checkeoNorma == 0) {
             double normaActual = xk1.norm();
-            if (normaActual > normaPrevia) {
+            if (normaActual > normaPrevia + delta) {
                 divChecker++; 
                 if(divChecker > divThreshold) {
                     cout << "ALERTA: El Metodo parece estar divirgiendo." << endl;
@@ -52,7 +52,7 @@ VectorXd jMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshol
     return xk1;
 }
 
-VectorXd gsMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold){
+VectorXd gsMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold, double delta){
     MatrixXd L = estrictamenteTriangularInferior(A) * (-1);
     MatrixXd U = estrictamenteTriangularSuperior(A) * (-1);
     MatrixXd D = A.diagonal().asDiagonal();
@@ -72,7 +72,7 @@ VectorXd gsMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double thresho
             break;
         if (k % checkeoNorma == 0) {
             double normaActual = xk1.norm();
-            if (normaActual > normaPrevia) {
+            if (normaActual > normaPrevia + delta) {
                 divChecker++; 
                 if(divChecker > divThreshold) {
                     cout << "ALERTA: El Metodo parece estar divirgiendo." << endl;
@@ -100,7 +100,7 @@ double sumatoriaDeJ(MatrixXd& M, int i, VectorXd& xk) {
     return sum;
 }
 
-VectorXd jSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold) {
+VectorXd jSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold, double delta) {
     int n = A.rows(); 
     VectorXd xk = x0;
     VectorXd xk1(xk.size());
@@ -120,7 +120,7 @@ VectorXd jSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshol
             break;
         if (k % checkeoNorma == 0) {
             double normaActual = xk1.norm();
-            if (normaActual > normaPrevia) {
+            if (normaActual > normaPrevia + delta) {
                 divChecker++; 
                 if(divChecker > divThreshold) {
                     cout << "ALERTA: El Metodo parece estar divirgiendo." << endl;
@@ -155,7 +155,7 @@ double sumatoriaDeGS2(MatrixXd& M, int i, VectorXd& xk1) {
     return sum;
 }
 
-VectorXd gsSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold) {
+VectorXd gsSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold, double delta) {
     int n = A.rows();
     VectorXd xk = x0;
     VectorXd xk1(Eigen::internal::size(xk));
@@ -177,7 +177,7 @@ VectorXd gsSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double thresho
         double normaActual = xk1.norm();
         if (k % checkeoNorma == 0) {
             double normaActual = xk1.norm();
-            if (normaActual > normaPrevia) {
+            if (normaActual > normaPrevia + delta) {
                 divChecker++; 
                 if(divChecker > divThreshold) {
                     cout << "ALERTA: El Metodo parece estar divirgiendo." << endl;
