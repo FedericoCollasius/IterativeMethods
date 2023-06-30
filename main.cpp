@@ -70,8 +70,10 @@ int main() {
         VectorXd x0 = VectorXd::Zero(matrixSize);
 
         auto start = chrono::high_resolution_clock::now();
+        VectorXd luResult = solveLU(A, b);
         auto end = chrono::high_resolution_clock::now();
         double luTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
+        double luError = (expected - luResult).norm();
 
         start = chrono::high_resolution_clock::now();
         VectorXd jSumResult = jSum(A, b, x0, nIter, threshold, checkeoNorma, divThreshold, delta);
@@ -98,7 +100,7 @@ int main() {
         double gsMatError = (expected - gsMatResult).norm();
 
         // Escribir los resultados en archivos
-        writeResultToFile("results.csv", "LU", luTime, 0.0);
+        writeResultToFile("results.csv", "LU", luTime, luError);
         writeResultToFile("results.csv", "jSum", jSumTime, jSumError);
         writeResultToFile("results.csv", "gsSum", gsSumTime, gsSumError);
         writeResultToFile("results.csv", "jMat", jMatTime, jMatError);
