@@ -8,3 +8,5 @@
 *.csv
 
 .vscode
+
+include/eigen-3.4.0

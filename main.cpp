@@ -41,10 +41,10 @@ VectorXd generateRandomVector(int size) {
 // comparar con el vector b
 
 // Función para escribir el resultado en un archivo de texto
-void writeResultToFile(string filename, string method, double time, double error) {
+void writeResultToFile(string filename, string method, double time, double error, VectorXd result) {
     ofstream file(filename, ios::app);
     if (file.is_open()) {
-        file << method << "," << time << "," << error << endl;
+        file << method << "," << time << "," << error << ","  << result << endl;
         file.close();
     } else {
         cout << "Error al abrir el archivo: " << filename << endl;
@@ -64,13 +64,14 @@ int main() {
     // Generar matrices y vectores aleatorios y realizar las pruebas
     for (int i = 0; i < numTests; i++) {
         MatrixXd A = generateRandomMatrix(matrixSize);
-        VectorXd b = generateRandomVector(matrixSize);
+        VectorXd x = generateRandomVector(matrixSize);
         //Expected is the product of the matrix by the vector
-        VectorXd expected = A * b;
+        VectorXd expected = A * x;
+        VectorXd b = generateRandomVector(matrixSize);
         VectorXd x0 = VectorXd::Zero(matrixSize);
 
         auto start = chrono::high_resolution_clock::now();
-        VectorXd luResult = solveLU(A, b);
+        VectorXd luResult = resolverLU(A, b);
         auto end = chrono::high_resolution_clock::now();
         double luTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
         double luError = (expected - luResult).norm();
@@ -100,11 +101,11 @@ int main() {
         double gsMatError = (expected - gsMatResult).norm();
 
         // Escribir los resultados en archivos
-        writeResultToFile("results.csv", "LU", luTime, luError);
-        writeResultToFile("results.csv", "jSum", jSumTime, jSumError);
-        writeResultToFile("results.csv", "gsSum", gsSumTime, gsSumError);
-        writeResultToFile("results.csv", "jMat", jMatTime, jMatError);
-        writeResultToFile("results.csv", "gsMat", gsMatTime, gsMatError);
+        writeResultToFile("results.csv", "LU", luTime, luError, luResult);
+        writeResultToFile("results.csv", "jSum", jSumTime, jSumError, jSumResult);
+        writeResultToFile("results.csv", "gsSum", gsSumTime, gsSumError, gsSumResult);
+        writeResultToFile("results.csv", "jMat", jMatTime, jMatError, jMatResult);
+        writeResultToFile("results.csv", "gsMat", gsMatTime, gsMatError, gsMatResult);
     }
 
     return 0;
