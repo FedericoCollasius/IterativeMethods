@@ -1,5 +1,4 @@
 #include "include/metodosIterativos/metodosIterativos.h"
-#include <fstream>
 #include <chrono>
 
 using namespace std;
