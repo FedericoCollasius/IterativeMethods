@@ -37,6 +37,9 @@ VectorXd generateRandomVector(int size) {
     return vector;
 }
 
+// Directamente hacer el producto de la matriz por el vector y 
+// comparar con el vector b
+
 // Función para escribir el resultado en un archivo de texto
 void writeResultToFile(string filename, string method, double time, double error) {
     ofstream file(filename, ios::app);
@@ -62,10 +65,11 @@ int main() {
     for (int i = 0; i < numTests; i++) {
         MatrixXd A = generateRandomMatrix(matrixSize);
         VectorXd b = generateRandomVector(matrixSize);
+        //Expected is the product of the matrix by the vector
+        VectorXd expected = A * b;
         VectorXd x0 = VectorXd::Zero(matrixSize);
 
         auto start = chrono::high_resolution_clock::now();
-        VectorXd expected = A.lu().solve(b);
         auto end = chrono::high_resolution_clock::now();
         double luTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
 
