@@ -1,5 +1,6 @@
 #ignore executable main
-.main
+main.exe
+main
 
 #ignore txt files
 *.txt

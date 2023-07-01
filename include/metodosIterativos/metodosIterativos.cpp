@@ -1,5 +1,7 @@
 #include "metodosIterativos.h"
- 
+#include <cmath> // Incluir la biblioteca <cmath> para std::isnan()
+
+
 MatrixXd estrictamenteTriangularInferior(MatrixXd& M){
     MatrixXd  L = M.triangularView<Lower>();
     for(int i = 0; i < M.rows(); i++)
@@ -30,6 +32,12 @@ VectorXd jMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshol
     for(int k = 0; k < nIter; k++){
         xk1 = (R * xk) + c;
         
+        // Verificar NaN
+        if (xk1.array().isNaN().any()) {
+            cout << "ALERTA: Se encontraron valores NaN en la iteración " << k << endl;
+            break;
+        }
+
         if ((xk1 - xk).norm() < threshold)
             break;
         if (k % checkeoNorma == 0) {
@@ -68,6 +76,12 @@ VectorXd gsMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double thresho
     for(int k = 0; k < nIter; k++){
         xk1 = (R * xk) + c;
         
+        // Verificar NaN
+        if (xk1.array().isNaN().any()) {
+            cout << "ALERTA: Se encontraron valores NaN en la iteración " << k << endl;
+            break;
+        }
+
         if ((xk1 - xk).norm() < threshold)
             break;
         if (k % checkeoNorma == 0) {
@@ -116,6 +130,12 @@ VectorXd jSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshol
             xk1(i) = xk1_i;
         }
 
+        // Verificar NaN
+        if (xk1.array().isNaN().any()) {
+            cout << "ALERTA: Se encontraron valores NaN en la iteración " << k << endl;
+            break;
+        }
+
         if ((xk1 - xk).norm() < threshold)
             break;
         if (k % checkeoNorma == 0) {
@@ -158,7 +178,7 @@ double sumatoriaDeGS2(MatrixXd& M, int i, VectorXd& xk1) {
 VectorXd gsSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold, double delta) {
     int n = A.rows();
     VectorXd xk = x0;
-    VectorXd xk1(Eigen::internal::size(xk));
+    VectorXd xk1(xk.size());
     double normaPrevia = xk.norm();
     int divChecker = 0;
 
@@ -172,8 +192,12 @@ VectorXd gsSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double thresho
             xk1(i) = xk1_i;
         }
 
-        if ((xk1 - xk).norm() < threshold)
+        // Verificar NaN
+        if (xk1.array().isNaN().any()) {
+            cout << "ALERTA: Se encontraron valores NaN en la iteración " << k << endl;
             break;
+        }
+
         double normaActual = xk1.norm();
         if (k % checkeoNorma == 0) {
             double normaActual = xk1.norm();
@@ -199,5 +223,3 @@ VectorXd resolverLU(MatrixXd& A, VectorXd& b){
     VectorXd x = A.lu().solve(b);
     return x; 
 }
-
-

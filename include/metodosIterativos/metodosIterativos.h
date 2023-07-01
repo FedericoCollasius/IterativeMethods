@@ -1,4 +1,4 @@
-#include <Eigen/Dense>
+#include <Eigen>
 #include <utility>
 #include <vector>
 #include <cmath>

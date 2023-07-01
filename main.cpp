@@ -44,7 +44,11 @@ VectorXd generateRandomVector(int size) {
 void writeResultToFile(string filename, string method, double time, double error, VectorXd result) {
     ofstream file(filename, ios::app);
     if (file.is_open()) {
-        file << method << "," << time << "," << error << ","  << result << endl;
+        file << method << "," << time << "," << error << ",";
+          for (int i = 0; i < result.size(); i++) {
+            file << result(i) << ",";
+        }
+        file << endl;
         file.close();
     } else {
         cout << "Error al abrir el archivo: " << filename << endl;
@@ -64,10 +68,9 @@ int main() {
     // Generar matrices y vectores aleatorios y realizar las pruebas
     for (int i = 0; i < numTests; i++) {
         MatrixXd A = generateRandomMatrix(matrixSize);
-        VectorXd x = generateRandomVector(matrixSize);
-        //Expected is the product of the matrix by the vector
-        VectorXd expected = A * x;
-        VectorXd b = generateRandomVector(matrixSize);
+        VectorXd b = generateRandomVector(matrixSize);; 
+        //Since Ax = b, x = A^-1 * b
+        VectorXd expected = A.inverse() * b;
         VectorXd x0 = VectorXd::Zero(matrixSize);
 
         auto start = chrono::high_resolution_clock::now();
@@ -101,11 +104,21 @@ int main() {
         double gsMatError = (expected - gsMatResult).norm();
 
         // Escribir los resultados en archivos
+        //write in csv file test number and expected result and size of matrix 
+        writeResultToFile("results.csv", "expected", i, matrixSize, expected);
         writeResultToFile("results.csv", "LU", luTime, luError, luResult);
         writeResultToFile("results.csv", "jSum", jSumTime, jSumError, jSumResult);
         writeResultToFile("results.csv", "gsSum", gsSumTime, gsSumError, gsSumResult);
         writeResultToFile("results.csv", "jMat", jMatTime, jMatError, jMatResult);
         writeResultToFile("results.csv", "gsMat", gsMatTime, gsMatError, gsMatResult);
+        //write end line to separate tests
+        ofstream file("results.csv", ios::app);
+        if (file.is_open()) {
+            file << endl;
+            file.close();
+        } else {
+            cout << "Error al abrir el archivo: " << "results.csv" << endl;
+        }
     }
 
     return 0;
