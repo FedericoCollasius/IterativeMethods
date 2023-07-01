@@ -34,12 +34,13 @@ VectorXd jMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshol
         
         // Verificar NaN
         if (xk1.array().isNaN().any()) {
-            cout << "ALERTA: Se encontraron valores NaN en la iteración " << k << endl;
+            cout << "ALERTA: Se encontraron valores NaN en la iteración de jMat" << k << endl;
             break;
         }
 
         if ((xk1 - xk).norm() < threshold)
             break;
+
         if (k % checkeoNorma == 0) {
             double normaActual = xk1.norm();
             if (normaActual > normaPrevia + delta) {
@@ -78,7 +79,7 @@ VectorXd gsMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double thresho
         
         // Verificar NaN
         if (xk1.array().isNaN().any()) {
-            cout << "ALERTA: Se encontraron valores NaN en la iteración " << k << endl;
+            cout << "ALERTA: Se encontraron valores NaN en la iteración de gsMat " << k << endl;
             break;
         }
 
@@ -132,7 +133,7 @@ VectorXd jSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshol
 
         // Verificar NaN
         if (xk1.array().isNaN().any()) {
-            cout << "ALERTA: Se encontraron valores NaN en la iteración " << k << endl;
+            cout << "ALERTA: Se encontraron valores NaN en la iteración de jSum " << k << endl;
             break;
         }
 
@@ -194,7 +195,7 @@ VectorXd gsSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double thresho
 
         // Verificar NaN
         if (xk1.array().isNaN().any()) {
-            cout << "ALERTA: Se encontraron valores NaN en la iteración " << k << endl;
+            cout << "ALERTA: Se encontraron valores NaN en la iteración de gsSum " << k << endl;
             break;
         }
 

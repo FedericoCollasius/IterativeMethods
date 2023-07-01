@@ -16,9 +16,11 @@ MatrixXd generateRandomMatrix(int size) {
 MatrixXd generateDominantMatrix(int size) {
     MatrixXd matrix(size, size);
     for(int i=0; i<size; i++){
+        int sum = 0;
         for(int j=0; j<size; j++){
             if(i!=j){
-                matrix(i,j) = rand() % 10;
+                matrix(i,j) = rand() % 500;
+                sum += matrix(i,j);
             }
             else{
                 matrix(i,j) = 10*size +1;
@@ -57,15 +59,16 @@ void writeResultToFile(string filename, string method, double time, double error
 
 int main() {
     // Parámetros de prueba
-    int matrixSize = 100;
-    int numTests = 10;
-    int nIter = 500;
-    double threshold = 0.00000000001;
+    int matrixSize = 10;
+    int numTests = 100;
+    int nIter = 50;
+    double threshold = 0.00001;
     int checkeoNorma = 100;
     int divThreshold = 10;
     double delta = 10;
 
     // Generar matrices y vectores aleatorios y realizar las pruebas
+    int failed_tests = 0;
     for (int i = 0; i < numTests; i++) {
         MatrixXd A = generateRandomMatrix(matrixSize);
         VectorXd b = generateRandomVector(matrixSize);; 
@@ -103,8 +106,6 @@ int main() {
         double gsMatTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
         double gsMatError = (expected - gsMatResult).norm();
 
-        // Escribir los resultados en archivos
-        //write in csv file test number and expected result and size of matrix 
         writeResultToFile("results.csv", "expected", i, matrixSize, expected);
         writeResultToFile("results.csv", "LU", luTime, luError, luResult);
         writeResultToFile("results.csv", "jSum", jSumTime, jSumError, jSumResult);
@@ -119,7 +120,17 @@ int main() {
         } else {
             cout << "Error al abrir el archivo: " << "results.csv" << endl;
         }
+        failed_tests= jSumResult.hasNaN() + gsSumResult.hasNaN() + jMatResult.hasNaN() + gsMatResult.hasNaN(); 
+        
     }
+    ofstream file("results.csv", ios::app);
+      if (file.is_open()) {
+          //Write percentage of failed tests
+          //For each run we have 4 methods, so we multiply by 4
+          file << "Failed tests: " << failed_tests  << "/" << numTests * 4 << endl;
+          file << endl;
+          file.close();
+      } 
 
     return 0;
 }
