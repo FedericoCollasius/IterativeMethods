@@ -43,14 +43,10 @@ VectorXd generateRandomVector(int size) {
 // comparar con el vector b
 
 // Función para escribir el resultado en un archivo de texto
-void writeResultToFile(string filename, string method, double time, double error, VectorXd result) {
+void writeResultToFile(string filename, string method, double time, double error) {
     ofstream file(filename, ios::app);
     if (file.is_open()) {
-        file << method << "," << time << "," << error << ",";
-          for (int i = 0; i < result.size(); i++) {
-            file << result(i) << ",";
-        }
-        file << endl;
+        file << method << "," << time << "," << error << endl;
         file.close();
     } else {
         cout << "Error al abrir el archivo: " << filename << endl;
@@ -106,31 +102,12 @@ int main() {
         double gsMatTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
         double gsMatError = (expected - gsMatResult).norm();
 
-        writeResultToFile("results.csv", "expected", i, matrixSize, expected);
-        writeResultToFile("results.csv", "LU", luTime, luError, luResult);
-        writeResultToFile("results.csv", "jSum", jSumTime, jSumError, jSumResult);
-        writeResultToFile("results.csv", "gsSum", gsSumTime, gsSumError, gsSumResult);
-        writeResultToFile("results.csv", "jMat", jMatTime, jMatError, jMatResult);
-        writeResultToFile("results.csv", "gsMat", gsMatTime, gsMatError, gsMatResult);
-        //write end line to separate tests
-        ofstream file("results.csv", ios::app);
-        if (file.is_open()) {
-            file << endl;
-            file.close();
-        } else {
-            cout << "Error al abrir el archivo: " << "results.csv" << endl;
-        }
-        failed_tests= jSumResult.hasNaN() + gsSumResult.hasNaN() + jMatResult.hasNaN() + gsMatResult.hasNaN(); 
-        
+        writeResultToFile("results.csv", "expected", i, matrixSize);
+        writeResultToFile("results.csv", "LU", luTime, luError);
+        writeResultToFile("results.csv", "jSum", jSumTime, jSumError);
+        writeResultToFile("results.csv", "gsSum", gsSumTime, gsSumError);
+        writeResultToFile("results.csv", "jMat", jMatTime, jMatError);
+        writeResultToFile("results.csv", "gsMat", gsMatTime, gsMatError);
     }
-    ofstream file("results.csv", ios::app);
-      if (file.is_open()) {
-          //Write percentage of failed tests
-          //For each run we have 4 methods, so we multiply by 4
-          file << "Failed tests: " << failed_tests  << "/" << numTests * 4 << endl;
-          file << endl;
-          file.close();
-      } 
-
     return 0;
 }
