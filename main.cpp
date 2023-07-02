@@ -51,7 +51,6 @@ int main() {
     double threshold = 0.00001;
     int checkeoNorma = 10;
     int divThreshold = 10;
-    double delta = 10;
 
     // Generar matrices y vectores aleatorios y realizar las pruebas
     //int failed_tests = 0;
@@ -90,7 +89,7 @@ int main() {
             errores[0] += luError;
 
             start = chrono::high_resolution_clock::now();
-            VectorXd jMatResult = jMat(A, b, x0, nIter, threshold, checkeoNorma, divThreshold, delta);
+            VectorXd jMatResult = jMat(A, b, x0, nIter, threshold, checkeoNorma, divThreshold);
             end = chrono::high_resolution_clock::now();
             double jMatTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
             double jMatError = (expected - jMatResult).norm();
@@ -98,7 +97,7 @@ int main() {
             errores[1] += jMatError;
 
             start = chrono::high_resolution_clock::now();
-            VectorXd gsMatResult = gsMat(A, b, x0, nIter, threshold, checkeoNorma, divThreshold, delta);
+            VectorXd gsMatResult = gsMat(A, b, x0, nIter, threshold, checkeoNorma, divThreshold);
             end = chrono::high_resolution_clock::now();
             double gsMatTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
             double gsMatError = (expected - gsMatResult).norm();
@@ -106,7 +105,7 @@ int main() {
             errores[2] += gsMatError;
 
             start = chrono::high_resolution_clock::now();
-            VectorXd jSumResult = jSum(A, b, x0, nIter, threshold, checkeoNorma, divThreshold, delta);
+            VectorXd jSumResult = jSum(A, b, x0, nIter, threshold, checkeoNorma, divThreshold);
             end = chrono::high_resolution_clock::now();
             double jSumTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
             double jSumError = (expected - jSumResult).norm();
@@ -114,7 +113,7 @@ int main() {
             errores[3] += jSumError;
 
             start = chrono::high_resolution_clock::now();
-            VectorXd gsSumResult = gsSum(A, b, x0, nIter, threshold, checkeoNorma, divThreshold, delta);
+            VectorXd gsSumResult = gsSum(A, b, x0, nIter, threshold, checkeoNorma, divThreshold);
             end = chrono::high_resolution_clock::now();
             double gsSumTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
             double gsSumError = (expected - gsSumResult).norm();
