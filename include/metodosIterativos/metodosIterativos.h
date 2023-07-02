@@ -1,4 +1,4 @@
-#include <Eigen>
+#include <Eigen/Dense>
 #include <utility>
 #include <vector>
 #include <cmath>
@@ -18,7 +18,7 @@ VectorXd resolverLU(MatrixXd& A, VectorXd& b);
 
 // Metodos Iterativos:
 VectorXd jMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold, double delta);
-VectorXd jSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold, double);
+VectorXd jSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold, double delta);
 VectorXd gsMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold, double delta);
 VectorXd gsSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold, double delta);
 
