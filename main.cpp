@@ -32,13 +32,32 @@ VectorXd generateRandomVector(int size) {
     return vector;
 }
 
-void writeResultToFile(string filename, int matrixSize, vector<double> tiempos, vector<double> errores) {
+void writeResultToFile(string filename, int matrixSize, vector<double> tiemposPromedio, vector<double> erroresPromedio) {
     ofstream file(filename, ios::app);
     if (file.is_open()) {
-        file << matrixSize << ',' << tiempos[0] << ',' << errores[0] << ',' << tiempos[1] << ',' << errores[1] << ',' << tiempos[2] << ',' << errores[2] << ',' << tiempos[3] << ',' << errores[3] << ',' << tiempos[4] << ',' << errores[4] << endl;
+        file << matrixSize << ',' << tiemposPromedio[0] << ',' << erroresPromedio[0] << ',' << tiemposPromedio[1] << ',' << erroresPromedio[1] << ',' << tiemposPromedio[2] << ',' << erroresPromedio[2] << ',' << tiemposPromedio[3] << ',' << erroresPromedio[3] << ',' << tiemposPromedio[4] << ',' << erroresPromedio[4] << endl;
         file.close();
     } else {
         cout << "Error al abrir el archivo: " << filename << endl;
+    }
+}
+
+void writeResultToFile2(const std::string& filename, const vector<vector<double>>& tiempos, const vector<vector<double>>& errores) {
+    std::ofstream file(filename, std::ios::app);
+    if (file.is_open()) {
+        for (int i = 0; i < tiempos[0].size(); i++) { // para cada prueba individual
+            for (int j = 0; j < tiempos.size(); j++) { // para cada método
+                file << tiempos[j][i] << ",";
+                file << errores[j][i];
+                if (j != tiempos.size() - 1) {
+                    file << ",";
+                }
+            }
+            file << std::endl;
+        }
+        file.close();
+    } else {
+        std::cout << "Error al abrir el archivo: " << filename << std::endl;
     }
 }
 
@@ -47,14 +66,13 @@ int main() {
     // Parámetros de prueba
     int numTests = 100;
     
-    int nIter = 50;
-    double threshold = 0.00001;
-    int checkeoNorma = 10;
-    int divThreshold = 10;
+    int nIter = 500;
+    double threshold = 0.0001;
+    int checkeoNorma = nIter - 1 / 10;
+    int divThreshold = 5;
+    double delta = 10;
 
-    // Generar matrices y vectores aleatorios y realizar las pruebas
-    //int failed_tests = 0;
-    ofstream file("results.csv", ios::app);
+    ofstream file("promedios.csv", ios::app);
     if (file.is_open()) {
         file << "Tamanio Matrix" << "," << 
         "Promedio Tiempo LU" << "," << "Promedio Error LU" << "," << 
@@ -67,12 +85,28 @@ int main() {
         cout << "Error al abrir el archivo: " << "results.csv" << endl;
     }
 
-    vector<int> values = {10, 50, 100, 250, 500, 750, 1000, 1500, 2000, 2500, 3000};
+    vector<int> values = {10};
 
     for (int i = 0; i < values.size(); i++) {
         int tamanioMatriz = values[i];
-        vector<double> tiempos(5, 0.0);
-        vector<double> errores(5, 0.0);
+        vector<double> tiemposPromedio(5, 0.0);
+        vector<double> erroresPromedio(5, 0.0);
+
+        string filename = "valoresCrudos" + std::to_string(tamanioMatriz) + ".csv";
+        ofstream file(filename, ios::app);
+        if (file.is_open()) {
+        file << "Tiempos LU" << "," << "Errores LU" << "," << 
+        "Tiempos JMat" << "," << "Errores JMat" << "," << 
+        "Tiempos GSMat" << "," << "Errores GSMat" << "," <<
+        "Tiempos JSum" << "," << "Errores JSum" << "," <<
+        "Tiempos GSSum" << "," << "Errores GSSum" << endl;
+        file.close();
+        } else {
+        cout << "Error al abrir el archivo: " << filename << endl;
+        }
+        vector<vector<double>> tiempos(5, vector<double>(numTests, 0.0));
+        vector<vector<double>> errores(5, vector<double>(numTests, 0.0));
+
         for (int i = 0; i < numTests; i++) {
             MatrixXd A = generateDominantMatrix(tamanioMatriz);
             VectorXd b = generateRandomVector(tamanioMatriz); 
@@ -85,46 +119,57 @@ int main() {
             auto end = chrono::high_resolution_clock::now();
             double luTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
             double luError = (expected - luResult).norm();
-            tiempos[0] += luTime;
-            errores[0] += luError;
+            tiemposPromedio[0] += luTime;
+            erroresPromedio[0] += luError;
+            tiempos[0][i] = luTime;
+            errores[0][i] = luError;
 
             start = chrono::high_resolution_clock::now();
             VectorXd jMatResult = jMat(A, b, x0, nIter, threshold, checkeoNorma, divThreshold);
             end = chrono::high_resolution_clock::now();
             double jMatTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
             double jMatError = (expected - jMatResult).norm();
-            tiempos[1] += jMatTime;
-            errores[1] += jMatError;
+            tiemposPromedio[1] += jMatTime;
+            erroresPromedio[1] += jMatError;
+            tiempos[1][i] = jMatTime;
+            errores[1][i] = jMatError;
 
             start = chrono::high_resolution_clock::now();
             VectorXd gsMatResult = gsMat(A, b, x0, nIter, threshold, checkeoNorma, divThreshold);
             end = chrono::high_resolution_clock::now();
             double gsMatTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
             double gsMatError = (expected - gsMatResult).norm();
-            tiempos[2] += gsMatTime;
-            errores[2] += gsMatError;
+            tiemposPromedio[2] += gsMatTime;
+            erroresPromedio[2] += gsMatError;
+            tiempos[2][i] = gsMatTime;
+            errores[2][i] = gsMatError;
 
             start = chrono::high_resolution_clock::now();
             VectorXd jSumResult = jSum(A, b, x0, nIter, threshold, checkeoNorma, divThreshold);
             end = chrono::high_resolution_clock::now();
             double jSumTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
             double jSumError = (expected - jSumResult).norm();
-            tiempos[3] += jSumTime;
-            errores[3] += jSumError;
+            tiemposPromedio[3] += jSumTime;
+            erroresPromedio[3] += jSumError;
+            tiempos[3][i] = jSumTime;
+            errores[3][i] = jSumError;
 
             start = chrono::high_resolution_clock::now();
             VectorXd gsSumResult = gsSum(A, b, x0, nIter, threshold, checkeoNorma, divThreshold);
             end = chrono::high_resolution_clock::now();
             double gsSumTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
             double gsSumError = (expected - gsSumResult).norm();
-            tiempos[4] += gsSumTime;
-            errores[4] += gsSumError;
+            tiemposPromedio[4] += gsSumTime;
+            erroresPromedio[4] += gsSumError;
+            tiempos[4][i] = gsSumTime;
+            errores[4][i] = gsSumError;
         }
         for(int i = 0; i < 5; i++){
-            tiempos[i] /= numTests;
-            errores[i] /= numTests;
+            tiemposPromedio[i] /= numTests;
+            erroresPromedio[i] /= numTests;
         }
-        writeResultToFile("results.csv", tamanioMatriz, tiempos, errores);
+        writeResultToFile("promedios.csv", tamanioMatriz, tiemposPromedio, erroresPromedio);
+        writeResultToFile2(filename, tiempos, errores);
     }
     return 0;
 }

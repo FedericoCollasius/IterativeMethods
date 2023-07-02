@@ -5,8 +5,6 @@ main
 #ignore txt files
 *.txt
 
-#ignore csv files
-*.csv
 
 .vscode
 
