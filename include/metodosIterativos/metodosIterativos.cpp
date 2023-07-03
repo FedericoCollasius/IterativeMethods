@@ -16,7 +16,7 @@ MatrixXd estrictamenteTriangularSuperior(MatrixXd& M){
     return U;
 }
 
-VectorXd jMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold){
+VectorXd jMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int check, int divThreshold){
     MatrixXd L = estrictamenteTriangularInferior(A) * (-1);
     MatrixXd U = estrictamenteTriangularSuperior(A) * (-1);
     MatrixXd D = A.diagonal().asDiagonal();
@@ -41,7 +41,7 @@ VectorXd jMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshol
         if ((xk1 - xk).norm() < threshold)
             break;
 
-        if (k % checkeoNorma == 0) {
+        if (k % check == 0) {
             double normaActual = xk1.norm();
             if (normaActual > normaPrevia) {
                 divChecker++; 
@@ -61,7 +61,7 @@ VectorXd jMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshol
     return xk1;
 }
 
-VectorXd gsMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold){
+VectorXd gsMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int check, int divThreshold){
     MatrixXd L = estrictamenteTriangularInferior(A) * (-1);
     MatrixXd U = estrictamenteTriangularSuperior(A) * (-1);
     MatrixXd D = A.diagonal().asDiagonal();
@@ -85,7 +85,7 @@ VectorXd gsMat(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double thresho
 
         if ((xk1 - xk).norm() < threshold)
             break;
-        if (k % checkeoNorma == 0) {
+        if (k % check == 0) {
             double normaActual = xk1.norm();
             if (normaActual > normaPrevia) {
                 divChecker++; 
@@ -115,7 +115,7 @@ double sumatoriaDeJ(MatrixXd& M, int i, VectorXd& xk) {
     return sum;
 }
 
-VectorXd jSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold) {
+VectorXd jSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int check, int divThreshold) {
     int n = A.rows(); 
     VectorXd xk = x0;
     VectorXd xk1(xk.size());
@@ -139,7 +139,7 @@ VectorXd jSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshol
 
         if ((xk1 - xk).norm() < threshold)
             break;
-        if (k % checkeoNorma == 0) {
+        if (k % check == 0) {
             double normaActual = xk1.norm();
             if (normaActual > normaPrevia) {
                 divChecker++; 
@@ -176,7 +176,7 @@ double sumatoriaDeGS2(MatrixXd& M, int i, VectorXd& xk1) {
     return sum;
 }
 
-VectorXd gsSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int checkeoNorma, int divThreshold) {
+VectorXd gsSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double threshold, int check, int divThreshold) {
     int n = A.rows();
     VectorXd xk = x0;
     VectorXd xk1(xk.size());
@@ -200,7 +200,7 @@ VectorXd gsSum(MatrixXd& A, VectorXd& b, VectorXd& x0, int nIter, double thresho
         }
 
         double normaActual = xk1.norm();
-        if (k % checkeoNorma == 0) {
+        if (k % check == 0) {
             double normaActual = xk1.norm();
             if (normaActual > normaPrevia) {
                 divChecker++; 

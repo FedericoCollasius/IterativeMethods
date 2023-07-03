@@ -66,11 +66,10 @@ int main() {
     // Parámetros de prueba
     int numTests = 100;
     
-    int nIter = 500;
+    int nIter = 50;
     double threshold = 0.0001;
-    int checkeoNorma = nIter - 1 / 10;
+    int check = nIter - 1 / 10;
     int divThreshold = 5;
-    double delta = 10;
 
     ofstream file("promedios.csv", ios::app);
     if (file.is_open()) {
@@ -125,7 +124,7 @@ int main() {
             errores[0][i] = luError;
 
             start = chrono::high_resolution_clock::now();
-            VectorXd jMatResult = jMat(A, b, x0, nIter, threshold, checkeoNorma, divThreshold);
+            VectorXd jMatResult = jMat(A, b, x0, nIter, threshold, check, divThreshold);
             end = chrono::high_resolution_clock::now();
             double jMatTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
             double jMatError = (expected - jMatResult).norm();
@@ -135,7 +134,7 @@ int main() {
             errores[1][i] = jMatError;
 
             start = chrono::high_resolution_clock::now();
-            VectorXd gsMatResult = gsMat(A, b, x0, nIter, threshold, checkeoNorma, divThreshold);
+            VectorXd gsMatResult = gsMat(A, b, x0, nIter, threshold, check, divThreshold);
             end = chrono::high_resolution_clock::now();
             double gsMatTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
             double gsMatError = (expected - gsMatResult).norm();
@@ -145,7 +144,7 @@ int main() {
             errores[2][i] = gsMatError;
 
             start = chrono::high_resolution_clock::now();
-            VectorXd jSumResult = jSum(A, b, x0, nIter, threshold, checkeoNorma, divThreshold);
+            VectorXd jSumResult = jSum(A, b, x0, nIter, threshold, check, divThreshold);
             end = chrono::high_resolution_clock::now();
             double jSumTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
             double jSumError = (expected - jSumResult).norm();
@@ -155,7 +154,7 @@ int main() {
             errores[3][i] = jSumError;
 
             start = chrono::high_resolution_clock::now();
-            VectorXd gsSumResult = gsSum(A, b, x0, nIter, threshold, checkeoNorma, divThreshold);
+            VectorXd gsSumResult = gsSum(A, b, x0, nIter, threshold, check, divThreshold);
             end = chrono::high_resolution_clock::now();
             double gsSumTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
             double gsSumError = (expected - gsSumResult).norm();
