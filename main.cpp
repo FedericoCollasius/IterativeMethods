@@ -152,6 +152,7 @@ void generarMatricesYCalcularCondicion(vector<int>& matrixSizes, int num_matrice
         double worst_cond = -DBL_MAX; // initialize with negative maximum double
         MatrixXd worst_matrix;
         for(int i = 0; i < num_matrices; i++){
+            //Generate randm matrix A 
             MatrixXd A = generateDominantMatrix(matrixSize);
             JacobiSVD<MatrixXd> svd(A);
             double cond = svd.singularValues()(0) / svd.singularValues()(svd.singularValues().size() - 1);
@@ -253,8 +254,15 @@ void valoresNumeroCondicion(int numTests, vector<int>& nIters, vector<MatrixXd>&
     }
 }
 
+int main(){
+  //Generate highLowConditionNumber
+  vector<MatrixXd> mejoresMatrices;
+  while(true){
+    highLowConditionNumber(10);
+  }
+}
 
-int main() {
+int main2() {
     // Parámetros de prueba
     int numTests = 10;
     
@@ -276,4 +284,23 @@ int main() {
     valoresNumeroCondicion(numTests, nIters, mejoresMatrices, peoresMatrices, threshold, check, divThreshold);
 
     return 0;
+}
+
+vector<MatrixXd> highLowConditionNumber(int size){
+  //Generate matrixes of one column replicated, so that columns are almost lineal dependent
+  //Generate 10 
+  for (int i = 0; i < size; i++) {
+    for( int j = 0; j < size; j++){
+      if (i == j) {
+        A(i,j) = 1;
+      } else {
+        A(i,j) = 1/size;
+      }
+    })  
+  }
+  //print condition number
+  JacobiSVD<MatrixXd> svd(A);
+  double condNumber = svd.singularValues()(0) / svd.singularValues()(svd.singularValues().size() - 1);
+  cout << "Cond number: " << condNumber << endl;
+  return A;
 }
