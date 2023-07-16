@@ -1,5 +1,6 @@
 #include "include/metodosIterativos/metodosIterativos.h"
 #include <chrono>
+#include <cfloat>
 
 using namespace std;
 using namespace Eigen;
@@ -20,21 +21,8 @@ MatrixXd generateDominantMatrix(int size) {
                 sum += matrix(i, j);
             }
         }
-        matrix(i, i) = sum + 1; // Esto garantiza que el elemento de la diagonal sea mayor que la suma de los demás elementos de la fila.
+        matrix(i, i) = sum + 1; 
     }
-    return matrix;
-}
-
-MatrixXd generateMatrixWithConditionNumber(int size, double conditionNumber) {
-    MatrixXd matrix;
-    double cond = 0;
-    do {
-        matrix = generateDominantMatrix(size);
-        JacobiSVD<MatrixXd> svd(matrix);
-        double maxSingularValue = svd.singularValues()(0);
-        double minSingularValue = svd.singularValues()(svd.singularValues().size()-1);
-        cond = maxSingularValue / minSingularValue;
-    } while (abs(cond - conditionNumber) > 1e-3);
     return matrix;
 }
 
@@ -64,28 +52,6 @@ void writeResultToFile(const std::string& filename, int matrixSize, int nIter, c
         std::cout << "Error al abrir el archivo: " << filename << std::endl;
     }
 }
-
-void writeResultToFile2(const std::string& filename, int matrixSize, int nIter, const vector<vector<double>>& tiempos, const vector<vector<double>>& errores, const vector<double>& condNumbers) {
-    std::ofstream file(filename, std::ios::app);
-    if (file.is_open()) {
-        for (int i = 0; i < tiempos[0].size(); i++) { // para cada prueba individual
-            file << matrixSize << "," << nIter << ",";
-            file << condNumbers[i] << ",";
-            for (int j = 0; j < tiempos.size(); j++) { // para cada método
-                file << tiempos[j][i] << ",";
-                file << errores[j][i];
-                if (j != tiempos.size() - 1) {
-                    file << ",";
-                }
-            }
-            file << std::endl;
-        }
-        file.close();
-    } else {
-        std::cout << "Error al abrir el archivo: " << filename << std::endl;
-    }
-}
-
 
 void valoresCrudos(int numTests, vector<int>& nIters, vector<int>& matrixSizes, double threshold, int check, int divThreshold){
     string filename = "valoresCrudos.csv";
@@ -159,12 +125,60 @@ void valoresCrudos(int numTests, vector<int>& nIters, vector<int>& matrixSizes, 
     }
 }
 
-void variacionErrorNumeroCondicion(int numTests, vector<int>& nIters, vector<int>& matrixSizes, double threshold, int check, int divThreshold){
-    string filename = "valoresCrudosNumCondicion.csv";
+void writeResultToFile2(string filename, int matrixSize, int nIter, vector<vector<double>>& tiempos, vector<vector<double>>& errores, int matrixType, double condNumber){
+    ofstream file(filename, ios::app);
+    if(file.is_open()){
+        for(int i = 0; i < tiempos[0].size(); i++){
+            file << matrixSize << "," << matrixType << "," << condNumber << "," << nIter;
+            for(auto& timeList : tiempos){
+                file << "," << timeList[i];
+            }
+            for(auto& errorList : errores){
+                file << "," << errorList[i];
+            }
+            file << endl;
+        }
+        file.close();
+    } else {
+        cout << "Error al abrir el archivo: " << filename << endl;
+    }
+}
+
+void generarMatricesYCalcularCondicion(vector<int>& matrixSizes, int num_matrices, vector<MatrixXd>& mejoresMatrices,vector<MatrixXd>& peoresMatrices){
+    for(auto& matrixSize : matrixSizes){
+        double best_cond = DBL_MAX;
+        MatrixXd best_matrix;
+
+        double worst_cond = -DBL_MAX; // initialize with negative maximum double
+        MatrixXd worst_matrix;
+        for(int i = 0; i < num_matrices; i++){
+            MatrixXd A = generateDominantMatrix(matrixSize);
+            JacobiSVD<MatrixXd> svd(A);
+            double cond = svd.singularValues()(0) / svd.singularValues()(svd.singularValues().size() - 1);
+
+            if(cond < best_cond){
+                best_cond = cond;
+                best_matrix = A;
+            }
+
+            if(cond > worst_cond){
+                worst_cond = cond;
+                worst_matrix = A;
+            }
+        }
+        mejoresMatrices.push_back(best_matrix);
+        peoresMatrices.push_back(worst_matrix);
+    }
+}
+
+void valoresNumeroCondicion(int numTests, vector<int>& nIters, vector<MatrixXd>& mejoresMatrices, vector<MatrixXd>& peoresMatrices, double threshold, int check, int divThreshold){
+    string filename = "valoresNumeroCondicion.csv";
     ofstream file(filename, ios::app);
     if (file.is_open()) {
-        file << "Tamaño de la matriz" << "," << "Número de iteraciones" << "," << 
-        "Número de condicion" << "," <<
+        file << "Tamaño de la matriz" << "," << 
+        "Tipo de Matriz (0 = mejor, 1 = peor)" << "," <<
+        "Número de Condición" << "," <<
+        "Número de iteraciones" << "," << 
         "Tiempos LU" << "," << "Errores LU" << "," << 
         "Tiempos JMat" << "," << "Errores JMat" << "," << 
         "Tiempos GSMat" << "," << "Errores GSMat" << "," <<
@@ -175,63 +189,66 @@ void variacionErrorNumeroCondicion(int numTests, vector<int>& nIters, vector<int
         cout << "Error al abrir el archivo: " << filename << endl;
     }
 
-    for (auto& matrixSize : matrixSizes) {
-        for (auto& nIter : nIters) {
-            vector<vector<double>> tiempos(5, vector<double>(numTests, 0.0));
-            vector<vector<double>> errores(5, vector<double>(numTests, 0.0));
-            vector<double> condNumbers(numTests, 0.0);
+    vector<vector<MatrixXd>> matricesGroups = {mejoresMatrices, peoresMatrices};
 
-            for (int i = 0; i < numTests; i++) {
-                double conditionNumber = (i + 1) * 10.0; 
-                MatrixXd A = generateMatrixWithConditionNumber(matrixSize, conditionNumber);
-                VectorXd b = generateRandomVector(matrixSize);
-                VectorXd expected = A.inverse() * b;
-                VectorXd x0 = generateRandomVector(matrixSize);
+    for (int groupId = 0; groupId < matricesGroups.size(); groupId++) {
+        auto& matrixGroup = matricesGroups[groupId];
+        int matrixType = (groupId == 0) ? 0 : 1;
 
-                condNumbers[i] = conditionNumber;
+        for(auto& A : matrixGroup){
+            JacobiSVD<MatrixXd> svd(A);
+            double condNumber = svd.singularValues()(0) / svd.singularValues()(svd.singularValues().size() - 1);
+            for(auto& nIter : nIters){
+                vector<vector<double>> tiempos(5, vector<double>(numTests, 0.0));
+                vector<vector<double>> errores(5, vector<double>(numTests, 0.0));
 
-                auto start = chrono::high_resolution_clock::now();
-                VectorXd luResult = resolverLU(A, b);
-                auto end = chrono::high_resolution_clock::now();
-                double luTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
-                double luError = (expected - luResult).norm();
-                tiempos[0][i] = luTime;
-                errores[0][i] = luError;
+                for(int i = 0; i < numTests; i++){
+                    VectorXd b = generateRandomVector(A.rows());
+                    VectorXd expected = A.inverse() * b;
+                    VectorXd x0 = generateRandomVector(A.rows());
 
-                start = chrono::high_resolution_clock::now();
-                VectorXd jMatResult = jMat(A, b, x0, nIter, threshold, check, divThreshold);
-                end = chrono::high_resolution_clock::now();
-                double jMatTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
-                double jMatError = (expected - jMatResult).norm();
-                tiempos[1][i] = jMatTime;
-                errores[1][i] = jMatError;
+                    auto start = chrono::high_resolution_clock::now();
+                    VectorXd luResult = resolverLU(A, b);
+                    auto end = chrono::high_resolution_clock::now();
+                    double luTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
+                    double luError = (expected - luResult).norm();
+                    tiempos[0][i] = luTime;
+                    errores[0][i] = luError;
 
-                start = chrono::high_resolution_clock::now();
-                VectorXd gsMatResult = gsMat(A, b, x0, nIter, threshold, check, divThreshold);
-                end = chrono::high_resolution_clock::now();
-                double gsMatTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
-                double gsMatError = (expected - gsMatResult).norm();
-                tiempos[2][i] = gsMatTime;
-                errores[2][i] = gsMatError;
+                    start = chrono::high_resolution_clock::now();
+                    VectorXd jMatResult = jMat(A, b, x0, nIter, threshold, check, divThreshold);
+                    end = chrono::high_resolution_clock::now();
+                    double jMatTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
+                    double jMatError = (expected - jMatResult).norm();
+                    tiempos[1][i] = jMatTime;
+                    errores[1][i] = jMatError;
 
-                start = chrono::high_resolution_clock::now();
-                VectorXd jSumResult = jSum(A, b, x0, nIter, threshold, check, divThreshold);
-                end = chrono::high_resolution_clock::now();
-                double jSumTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
-                double jSumError = (expected - jSumResult).norm();
-                tiempos[3][i] = jSumTime;
-                errores[3][i] = jSumError;
+                    start = chrono::high_resolution_clock::now();
+                    VectorXd gsMatResult = gsMat(A, b, x0, nIter, threshold, check, divThreshold);
+                    end = chrono::high_resolution_clock::now();
+                    double gsMatTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
+                    double gsMatError = (expected - gsMatResult).norm();
+                    tiempos[2][i] = gsMatTime;
+                    errores[2][i] = gsMatError;
 
-                start = chrono::high_resolution_clock::now();
-                VectorXd gsSumResult = gsSum(A, b, x0, nIter, threshold, check, divThreshold);
-                end = chrono::high_resolution_clock::now();
-                double gsSumTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
-                double gsSumError = (expected - gsSumResult).norm();
-                tiempos[4][i] = gsSumTime;
-                errores[4][i] = gsSumError;
+                    start = chrono::high_resolution_clock::now();
+                    VectorXd jSumResult = jSum(A, b, x0, nIter, threshold, check, divThreshold);
+                    end = chrono::high_resolution_clock::now();
+                    double jSumTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
+                    double jSumError = (expected - jSumResult).norm();
+                    tiempos[3][i] = jSumTime;
+                    errores[3][i] = jSumError;
+
+                    start = chrono::high_resolution_clock::now();
+                    VectorXd gsSumResult = gsSum(A, b, x0, nIter, threshold, check, divThreshold);
+                    end = chrono::high_resolution_clock::now();
+                    double gsSumTime = chrono::duration_cast<chrono::microseconds>(end - start).count() * 1e-6;
+                    double gsSumError = (expected - gsSumResult).norm();
+                    tiempos[4][i] = gsSumTime;
+                    errores[4][i] = gsSumError;
+                }
+                writeResultToFile2(filename, A.rows(), nIter, tiempos, errores, matrixType, condNumber);
             }
-
-            writeResultToFile2(filename, matrixSize, nIter, tiempos, errores, condNumbers);
         }
     }
 }
@@ -239,18 +256,24 @@ void variacionErrorNumeroCondicion(int numTests, vector<int>& nIters, vector<int
 
 int main() {
     // Parámetros de prueba
-    int numTests = 100;
+    int numTests = 10;
     
     double threshold = 0.0001;
     int check = 10; 
     int divThreshold = 5;
 
-    vector<int> nIters = {10, 25, 50, 75, 100, 200, 400, 500};
-    vector<int> matrixSizes = {10, 50, 100, 250, 500, 750, 1000, 1500, 2000, 2500};
+    int numMatrices = 100; 
+
+    vector<int> nIters = {10, 25, 50, 75, 100, 200, 400};
+    vector<int> matrixSizes = {10, 50, 100, 150, 250, 500, 750, 1000, 1500, 2000, 2500};
     
-    valoresCrudos(numTests, nIters, matrixSizes, threshold, check, divThreshold); 
-    variacionErrorNumeroCondicion(numTests, nIters, matrixSizes, threshold, check, divThreshold);
+    //valoresCrudos(numTests, nIters, matrixSizes, threshold, check, divThreshold);
+    
+    vector<MatrixXd> mejoresMatrices; 
+    vector<MatrixXd> peoresMatrices;
+    generarMatricesYCalcularCondicion(matrixSizes, numMatrices, mejoresMatrices, peoresMatrices);
 
-    return 0; 
+    valoresNumeroCondicion(numTests, nIters, mejoresMatrices, peoresMatrices, threshold, check, divThreshold);
+
+    return 0;
 }
-
