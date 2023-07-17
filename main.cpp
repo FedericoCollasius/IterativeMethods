@@ -1,6 +1,10 @@
 #include "include/metodosIterativos/metodosIterativos.h"
+#include <vector>
+#include <float.h>
+#include <Eigen/Dense>
 #include <chrono>
-#include <cfloat>
+#include <fstream>
+#include <iostream>
 
 using namespace std;
 using namespace Eigen;
@@ -17,13 +21,28 @@ MatrixXd generateDominantMatrix(int size) {
         int sum = 0;
         for(int j = 0; j < size; j++){
             if(i != j){
-                matrix(i, j) = rand() % 500;
+                matrix(i, j) = rand() % 10;
                 sum += matrix(i, j);
             }
         }
         matrix(i, i) = sum + 1; 
     }
     return matrix;
+}
+
+MatrixXd generateDiagonllyDominantLowCond(int size){
+    MatrixXd matrix(size, size);
+    for(int i = 0; i < size; i++){
+        for(int j = 0; j < size; j++){
+            if(i == j){
+                matrix(i, j) = 1;
+            }
+            else{
+                matrix(i, j) = 1/size;
+            }
+        }
+    }
+    return matrix; 
 }
 
 VectorXd generateRandomVector(int size) {
@@ -125,18 +144,31 @@ void valoresCrudos(int numTests, vector<int>& nIters, vector<int>& matrixSizes, 
     }
 }
 
+double calcularCondNumber(Eigen::MatrixXd& A){
+    if(A.determinant() == 0){
+        std::cout << "No es inversible." << std::endl;
+        return -1;
+    } else {
+        double condNumber = A.norm() * A.inverse().norm();
+        return condNumber;
+    }
+}
+
+
+
 void writeResultToFile2(string filename, int matrixSize, int nIter, vector<vector<double>>& tiempos, vector<vector<double>>& errores, int matrixType, double condNumber){
     ofstream file(filename, ios::app);
     if(file.is_open()){
         for(int i = 0; i < tiempos[0].size(); i++){
             file << matrixSize << "," << matrixType << "," << condNumber << "," << nIter;
-            for(auto& timeList : tiempos){
-                file << "," << timeList[i];
+            for (int j = 0; j < tiempos.size(); j++) { // para cada método
+                file << tiempos[j][i] << ",";
+                file << errores[j][i];
+                if (j != tiempos.size() - 1) {
+                    file << ",";
+                }
             }
-            for(auto& errorList : errores){
-                file << "," << errorList[i];
-            }
-            file << endl;
+            file << std::endl;
         }
         file.close();
     } else {
@@ -144,35 +176,12 @@ void writeResultToFile2(string filename, int matrixSize, int nIter, vector<vecto
     }
 }
 
-void generarMatricesYCalcularCondicion(vector<int>& matrixSizes, int num_matrices, vector<MatrixXd>& mejoresMatrices,vector<MatrixXd>& peoresMatrices){
-    for(auto& matrixSize : matrixSizes){
-        double best_cond = DBL_MAX;
-        MatrixXd best_matrix;
 
-        double worst_cond = -DBL_MAX; // initialize with negative maximum double
-        MatrixXd worst_matrix;
-        for(int i = 0; i < num_matrices; i++){
-            //Generate randm matrix A 
-            MatrixXd A = generateDominantMatrix(matrixSize);
-            JacobiSVD<MatrixXd> svd(A);
-            double cond = svd.singularValues()(0) / svd.singularValues()(svd.singularValues().size() - 1);
+void valoresNumeroCondicion(int numTests, vector<int>& nIters, 
+    vector<pair<double, MatrixXd>>& buenasMatrices, 
+    vector<pair<double, MatrixXd>>& malasMatrices, 
+    double threshold, int check, int divThreshold){
 
-            if(cond < best_cond){
-                best_cond = cond;
-                best_matrix = A;
-            }
-
-            if(cond > worst_cond){
-                worst_cond = cond;
-                worst_matrix = A;
-            }
-        }
-        mejoresMatrices.push_back(best_matrix);
-        peoresMatrices.push_back(worst_matrix);
-    }
-}
-
-void valoresNumeroCondicion(int numTests, vector<int>& nIters, vector<MatrixXd>& mejoresMatrices, vector<MatrixXd>& peoresMatrices, double threshold, int check, int divThreshold){
     string filename = "valoresNumeroCondicion.csv";
     ofstream file(filename, ios::app);
     if (file.is_open()) {
@@ -190,15 +199,15 @@ void valoresNumeroCondicion(int numTests, vector<int>& nIters, vector<MatrixXd>&
         cout << "Error al abrir el archivo: " << filename << endl;
     }
 
-    vector<vector<MatrixXd>> matricesGroups = {mejoresMatrices, peoresMatrices};
+    vector<vector<pair<double, MatrixXd>>> matricesGroups = {buenasMatrices, malasMatrices};
 
     for (int groupId = 0; groupId < matricesGroups.size(); groupId++) {
         auto& matrixGroup = matricesGroups[groupId];
         int matrixType = (groupId == 0) ? 0 : 1;
 
-        for(auto& A : matrixGroup){
-            JacobiSVD<MatrixXd> svd(A);
-            double condNumber = svd.singularValues()(0) / svd.singularValues()(svd.singularValues().size() - 1);
+        for(auto& matrixPair : matrixGroup){
+            double condNumber = matrixPair.first;
+            MatrixXd A = matrixPair.second;
             for(auto& nIter : nIters){
                 vector<vector<double>> tiempos(5, vector<double>(numTests, 0.0));
                 vector<vector<double>> errores(5, vector<double>(numTests, 0.0));
@@ -254,53 +263,28 @@ void valoresNumeroCondicion(int numTests, vector<int>& nIters, vector<MatrixXd>&
     }
 }
 
-int main(){
-  //Generate highLowConditionNumber
-  vector<MatrixXd> mejoresMatrices;
-  while(true){
-    highLowConditionNumber(10);
-  }
-}
 
-int main2() {
-    // Parámetros de prueba
-    int numTests = 10;
+int main() {
+    cout << "Empezando..." << endl;
     
+    int numTests = 10;
+
     double threshold = 0.0001;
     int check = 10; 
     int divThreshold = 5;
 
-    int numMatrices = 100; 
+    int numMatrices = 10; 
 
     vector<int> nIters = {10, 25, 50, 75, 100, 200, 400};
-    vector<int> matrixSizes = {10, 50, 100, 150, 250, 500, 750, 1000, 1500, 2000, 2500};
+    vector<int> matrixSizes = {10, 50, 100, 150, 250, 500, 750, 1000};
     
     //valoresCrudos(numTests, nIters, matrixSizes, threshold, check, divThreshold);
     
-    vector<MatrixXd> mejoresMatrices; 
-    vector<MatrixXd> peoresMatrices;
-    generarMatricesYCalcularCondicion(matrixSizes, numMatrices, mejoresMatrices, peoresMatrices);
-
-    valoresNumeroCondicion(numTests, nIters, mejoresMatrices, peoresMatrices, threshold, check, divThreshold);
+    vector<pair<double, MatrixXd>> buenasMatrices;
+    vector<pair<double, MatrixXd>> malasMatrices;
+    generarMatrices(numMatrices, matrixSizes, buenasMatrices, malasMatrices);
+    valoresNumeroCondicion(numTests, nIters, buenasMatrices, malasMatrices, threshold, check, divThreshold);
 
     return 0;
 }
 
-vector<MatrixXd> highLowConditionNumber(int size){
-  //Generate matrixes of one column replicated, so that columns are almost lineal dependent
-  //Generate 10 
-  for (int i = 0; i < size; i++) {
-    for( int j = 0; j < size; j++){
-      if (i == j) {
-        A(i,j) = 1;
-      } else {
-        A(i,j) = 1/size;
-      }
-    })  
-  }
-  //print condition number
-  JacobiSVD<MatrixXd> svd(A);
-  double condNumber = svd.singularValues()(0) / svd.singularValues()(svd.singularValues().size() - 1);
-  cout << "Cond number: " << condNumber << endl;
-  return A;
-}
