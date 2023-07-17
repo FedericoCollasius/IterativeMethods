@@ -263,6 +263,45 @@ void valoresNumeroCondicion(int numTests, vector<int>& nIters,
     }
 }
 
+<<<<<<< Updated upstream
+=======
+void generarMatrices(int numMatrices, vector<int>& matrixSize, vector<pair<double, MatrixXd>>& buenasMatrices, vector<pair<double, MatrixXd>>& malasMatrices){
+  //Function takes numMatrices, size and two vector of pairs
+  //In one vector of pairs we store the best matrices and in the other the worst matricesGroups
+  //We define the best matrices as the ones with condition number < 10 and the worst as the ones with condition number > 100
+  for(int i=0; i<numMatrices; i++){
+    //Generate good matrices 
+    MatrixXd A = MatrixXd::Random(matrixSize[i], matrixSize[i]);
+    JacobiSVD<MatrixXd> svd(A);
+    int condNumber = svd.singularValues()(0) / svd.singularValues()(svd.singularValues().size() - 1);
+    while(condNumber>11){
+      A = MatrixXd::Random(matrixSize[i], matrixSize[i]);
+      svd = JacobiSVD<MatrixXd>(A);
+      condNumber = svd.singularValues()(0) / svd.singularValues()(svd.singularValues().size() - 1);
+    } 
+    buenasMatrices.push_back(make_pair(condNumber, A));
+
+    //Generate bad matrices 
+    A = MatrixXd::Random(matrixSize[i], matrixSize[i]); 
+    svd = JacobiSVD<MatrixXd>(A); 
+    condNumber = svd.singularValues()(0) / svd.singularValues()(svd.singularValues().size() - 1); 
+    while(condNumber<80){
+      A = MatrixXd::Random(matrixSize[i], matrixSize[i]);
+      svd = JacobiSVD<MatrixXd>(A);
+      condNumber = svd.singularValues()(0) / svd.singularValues()(svd.singularValues().size() - 1);
+    }
+    malasMatrices.push_back(make_pair(condNumber, A));
+  }
+}
+
+int main(){
+  //Generate highLowConditionNumber
+  vector<MatrixXd> mejoresMatrices;
+  while(true){
+    highLowConditionNumber(10);
+  }
+}
+>>>>>>> Stashed changes
 
 int main() {
     cout << "Empezando..." << endl;
@@ -288,3 +327,7 @@ int main() {
     return 0;
 }
 
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
